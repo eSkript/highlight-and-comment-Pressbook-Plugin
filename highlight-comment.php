@@ -9,15 +9,15 @@
  * that starts the plugin.
  *
  * @link              https://www.ee.ethz.ch/de/departement/personen-a-bis-z/person-detail.html?persid=208843
- * @since             1.0.0
+ * @since             0.1.0
  * @package           Highlight_Comment
  *
  * @wordpress-plugin
  * Plugin Name:       Highlight and Comment
  * Plugin URI:        https://github.com/mLorin/highlight-and-comment-Pressbook-Plugin
  * Description:       allows to highlight and comment parts of an eBook
- * Version:           1.0.0
- * Author:            Lorin Mühlebach
+ * Version:           0.1.0
+ * Author:            Lorin Muehlebach
  * Author URI:        https://www.ee.ethz.ch/de/departement/personen-a-bis-z/person-detail.html?persid=208843
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
@@ -30,7 +30,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( PLUGIN_VERSION, '1.0.0' );
+define( PLUGIN_VERSION, '0.1.0' );
 
 /**
  * The code that runs during plugin activation.
