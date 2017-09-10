@@ -16,7 +16,7 @@
  * Plugin Name:       Highlight and Comment
  * Plugin URI:        https://github.com/mLorin/highlight-and-comment-Pressbook-Plugin
  * Description:       allows to highlight and comment parts of an eBook
- * Version:           0.1.0
+ * Version:           1.0.0
  * Author:            Lorin Muehlebach
  * Author URI:        https://www.ee.ethz.ch/de/departement/personen-a-bis-z/person-detail.html?persid=208843
  * License:           GPL-2.0+
@@ -30,7 +30,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( PLUGIN_VERSION, '0.1.0' );
+//define( PLUGIN_VERSION, '1.0.0' );
 
 /**
  * The code that runs during plugin activation.

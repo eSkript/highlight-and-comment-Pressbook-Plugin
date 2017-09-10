@@ -60,20 +60,9 @@ class Highlight_Comment_Public {
 	 * @since    1.0.0
 	 */
 	public function enqueue_styles() {
-
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Highlight_Comment_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Highlight_Comment_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/highlight-comment-public.css', array(), $this->version, 'all' );
+        
+        //Highlighting style sheets
+		//wp_enqueue_style( $this->plugin_name, plugin_dir_path( dirname( __FILE__ ) ). 'includes/highlighting/styles.css', array(), $this->version, 'all' );
 
 	}
 
@@ -84,20 +73,20 @@ class Highlight_Comment_Public {
 	 */
 	public function enqueue_scripts() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Highlight_Comment_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Highlight_Comment_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/highlight-comment-public.js', array( 'jquery' ), $this->version, false );
+        //Highlighting js files
+        /*
+		wp_enqueue_script( $this->plugin_name, plugin_dir_path( dirname( __FILE__ ) ). 'includes/highlighting/highlighting.js', array( 'jquery' ), $this->version, false );
+        wp_enqueue_script( $this->plugin_name, plugin_dir_path( dirname( __FILE__ ) ). 'includes/highlighting/json_handler.js', array( 'jquery' ), $this->version, false );
+        wp_enqueue_script( $this->plugin_name, plugin_dir_path( dirname( __FILE__ ) ). 'includes/highlighting/TextHighlighter.min.js', array( 'jquery' ), $this->version, false );
+        */
+        
+        wp_register_script("highlighting-js",plugin_dir_url( __DIR__ ). 'includes/highlighting/highlighting.js', array( 'jquery' ) );
+        wp_enqueue_script("highlighting-js");
+        
+        wp_register_script("TextHighlighter-js",plugin_dir_url( __DIR__ ). 'includes/highlighting/TextHighlighter.min.js', array( 'jquery' ) );
+        wp_enqueue_script("TextHighlighter-js");
+        
+        //wp_localize_script("highlight-js", "php_vars", $this->load_data());
 
 	}
-
 }
