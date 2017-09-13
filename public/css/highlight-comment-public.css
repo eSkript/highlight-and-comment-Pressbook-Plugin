@@ -2,3 +2,33 @@
  * All of the CSS for your public-facing functionality should be
  * included in this file.
  */
+
+.highlighted{
+    background-color: rgb(255, 255, 123);
+}
+
+.highlighted.hover{
+    background-color: rgb(171, 223, 250);
+}
+
+.delete_highlight{
+    position: relative;
+    cursor: pointer;
+}
+
+.delete_highlight.hidden{
+    display: none;
+}
+
+.delete_highlight div{
+    position: absolute;
+    width: 1em;
+    top: -1em;
+    left: -5px;
+}
+
+.delete_highlight img{
+    background: none;
+    border: none;
+    width: 100%;
+}

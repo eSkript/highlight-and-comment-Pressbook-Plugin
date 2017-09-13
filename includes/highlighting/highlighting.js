@@ -1,128 +1,90 @@
-// README
-// BASIC FUNCTIONALITY OF THIS SCRIPT:
-//   (A.) HIGHLIGHT MARKED SECTION IN TEXT IN YELLOW
-//   (B.) DELETE SPECIFIC HIGHLIGHT, WHEN RIGHT CLICK ON THAT
-//        RESPECTIVE HIGHLIGHT.
-// TO SEE THESES FUNCTIONALITIES IN ACTION,
-//        DOWNLOAD THIS PACKAGE AND
-//        START index.html
-// FOLLOWING HAS TO BE MODIFIED TO MAKE THIS WORK IN ESKRIPT:
-//   (1.) INCLUDE THIS SCRIPT IN EBOOK AS A PLUGIN OR SIMILAR COMPONENT
-//   (2.) MODIFY THE FIRST TWO SUB-FUNCTIONS FROM THIS SCRIPT FOR
-//        EBOOK (MATTER OF MAKING HIGHLIGHTS PERSISTENT IN THE SYSTEM)
-//   (3.) INCLUDE THIS SCRIPT IN EBOOK CHAPTERS
-//
-
 $(function() {
+    console.log(highlight_vars);
+    var myHighlighter;
+    
+    if(window.location.href.indexOf("chapter") != -1 && highlight_vars.logged_in){
+        setupHighlighter();
+    }
+    
 
-    // TO BE MODIFIED FOR ESKRIPT
-    function loadStoredHighlightsToDocument() {
-        // USING FOLLOWING COMMAND, THE SERIALIZED HIGHLIGHTS CAN BE
-        // LOADED IN THE CONNECTED DOCUMENT:
-        // myHighlighter.deserializeHighlights(serializedHighlights);
-
-        // IN FOLLOWING EXAMPLE, HIGHLIGHTS ARE LOADED FROM A STORED
-        // JSON DOCUMENT. THIS WILL HAVE TO BE REPLACED BY THE RESPECTIVE
-        // ESKRIPT FUNCTION.
+    function setupHighlighter(){
+        $(".entry-content").attr('id', 'highlighter_content');
+        var my_content = document.getElementById('highlighter_content');
+        myHighlighter = new TextHighlighter(my_content,{onAfterHighlight: function(arr, element) {afterHighlight(arr, element);}});
+        loadStoredHighlights();
+        //TODO markup for loaded highlights
+    }
+    
+    function afterHighlight(arr, element){
+        //console.log(element);
+        var respecticeTimestamp = element[0].outerHTML.split("data-timestamp=")[1].split("\"")[1];
         
-        /*
-        loadJSON(function(serializedHighlights) {
-            // Parse JSON string into object
-            myHighlighter.deserializeHighlights(serializedHighlights);
-        });
-        */
+        doMarkup(respecticeTimestamp);
+        
+        storeHighlights();
     }
-
-    // TO BE MODIFIED FOR ESKRIPT
-    function storeHighlightsFromDocument(serializedHighlights) {
-        // IN THIS FUNCTION, THE ATTACHED VARIABLE serializedHighlights
-        // HAS TO BE SAVED FOR THE RESPECTIVE USER AND DOCUMENT SUCH
-        // THAT IT CAN BE LOADED AGAIN WITH THE ABOVE FUNCTION WHEN
-        // THE USER REOPENS THE DOCUMENT.
-
-        console.log(serializedHighlights);
+    
+    function removeHighlight(timestamp){
+        $("span[data-timestamp='"+timestamp+"']").find("a.delete_highlight").remove();
+        $("span[data-timestamp='"+timestamp+"']").contents().unwrap();
+        storeHighlights();
     }
-
-
-
-    var $context = $("#content");
-    $(".entry-content").attr('id', 'highlighter_content');
-    // THE DOCUMENT TO BE HIGHLIGHTED MUST HAVE id='my_content'
-    // can be changed either here or in the document
-    var my_content = document.getElementById('highlighter_content');
-    console.log(my_content);
-    var myHighlighter = new TextHighlighter(my_content),
-        serialized;
-    myHighlighter.removeHighlights();
-
-
-
-    // here, existing highlights are loaded and added by an even listener
-    loadStoredHighlightsToDocument();
-    // event listener: on right mouse click, the clicked highlight disappears
-    var allHighlights = document.getElementsByClassName("highlighted");
-    for (var i = 0; i < allHighlights.length; i++) {
-        allHighlights[i].addEventListener('contextmenu', function(ev) {
-            ev.preventDefault();
-            var respecticeTimestamp = element[0].outerHTML.split("data-timestamp=")[1].split("\"")[1];
-            serialized = myHighlighter.serializeHighlights();
-            myHighlighter.removeHighlights();
-            var allHighlights = JSON.parse(serialized);
-            var highlightsExceptRemovedOne = [];
-            for (var i = 0; i < allHighlights.length; i++) {
-                var currentEntry = allHighlights[i];
-                if (currentEntry[0].indexOf(respecticeTimestamp) == -1) {
-                    highlightsExceptRemovedOne.push(allHighlights[i]);
-                }
+    
+    function loadStoredHighlights() {
+        //console.log(highlight_vars.highlight_data);
+        myHighlighter.deserializeHighlights(highlight_vars.highlight_data);
+        
+        var all_timestamps = Array();
+        $("span.highlighted").each(function(i,element){
+            if($.inArray($(element).data("timestamp"),all_timestamps) == -1){
+                all_timestamps.push($(element).data("timestamp"));
             }
-            serialized = JSON.stringify(highlightsExceptRemovedOne);
-            myHighlighter.deserializeHighlights(serialized);
-            var allHighlights = document.getElementsByClassName("highlighted");
-            storeHighlightsFromDocument(serialized);
-
-            return false;
-        }, false);
+        });
+        
+        $.each(all_timestamps,function(i,value){
+            doMarkup(value);
+        });
+        
     }
 
+    function storeHighlights() {
+        
+        //replace escapted \" because php removes these
+        var serializedHighlights = myHighlighter.serializeHighlights().replace(/\\"/g,"'");
+        
+        //console.log(serializedHighlights);
+    
+        var data = {
+            'action': 'highlight_save_highlights',
+            'progNonce' : highlight_vars.ajax_nonce,
+            'book_id' : highlight_vars.book_id,
+            'chapter_id' :highlight_vars.chapter_id,
+            'highlight_data' : serializedHighlights
+        };
 
-    $context.textHighlighter({
-        onAfterHighlight: function(arr, element) {
+        console.log(data);
 
-            serialized = myHighlighter.serializeHighlights();
-            storeHighlightsFromDocument(serialized);
+        jQuery.post(highlight_vars.ajax_url, data, function(response) {
+            console.log('Got this from the server: ' + response);
+        });
+        //TODO ajax save highlights
+    }
+    
+    function doMarkup(timestamp){
+        $("span[data-timestamp='"+timestamp+"']").hover(function() {
+            $("span[data-timestamp='"+timestamp+"']").addClass("hover");
+            $("span[data-timestamp='"+timestamp+"'] a").removeClass("hidden");
+        }, function() {
+            $("span[data-timestamp='"+timestamp+"']").removeClass("hover");
+            $("span[data-timestamp='"+timestamp+"'] a").addClass("hidden");
+        });
 
-            // deprecated
-            document.cookie = "serialized=" + JSON.stringify(serialized);
+        $("span[data-timestamp='"+timestamp+"']").last().append("<a href='javascript:alert('test');' class='delete_highlight hidden' alt='Delete'><div><img src='"+highlight_vars.media_url+"minus.png"+"'></div></a>");
 
-
-            // event listener: on right mouse click, the clicked highlight disappears
-            element[0].addEventListener('contextmenu', function(ev) {
-                ev.preventDefault();
-                var respecticeTimestamp = element[0].outerHTML.split("data-timestamp=")[1].split("\"")[1];
-                serialized = myHighlighter.serializeHighlights();
-                myHighlighter.removeHighlights();
-                var allHighlights = JSON.parse(serialized);
-                var highlightsExceptRemovedOne = [];
-                for (var i = 0; i < allHighlights.length; i++) {
-                    var currentEntry = allHighlights[i];
-                    if (currentEntry[0].indexOf(respecticeTimestamp) == -1) {
-                        highlightsExceptRemovedOne.push(allHighlights[i]);
-                    }
-                }
-                serialized = JSON.stringify(highlightsExceptRemovedOne);
-                myHighlighter.deserializeHighlights(serialized);
-
-
-                var allHighlights = document.getElementsByClassName("highlighted");
-                storeHighlightsFromDocument(serialized);
-
-                return false;
-            }, false);
-
-
-
-
-        }
-    });
+        $("span[data-timestamp='"+timestamp+"']").last().find("a.delete_highlight").click( function(e) {e.preventDefault(); removeHighlight(timestamp); return false; } );
+    }
+    
+    //helper functions 
+    Array.prototype.last = function() {return this[this.length-1];}
 
 });

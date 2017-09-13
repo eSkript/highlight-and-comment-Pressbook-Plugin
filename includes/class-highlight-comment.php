@@ -172,6 +172,10 @@ class Highlight_Comment {
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+        
+        //ajax handlers
+        $this->loader->add_action( 'wp_ajax_nopriv_highlight_save_highlights', $plugin_public,'save_highlights' );
+		$this->loader->add_action( 'wp_ajax_highlight_save_highlights', $plugin_public,'save_highlights' );
 
 	}
 
