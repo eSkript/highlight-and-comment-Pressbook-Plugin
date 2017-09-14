@@ -1,5 +1,5 @@
 $(function() {
-    console.log(highlight_vars);
+    //console.log(highlight_vars);
     var myHighlighter;
     
     if(window.location.href.indexOf("chapter") != -1 && highlight_vars.logged_in){
@@ -11,8 +11,17 @@ $(function() {
         $(".entry-content").attr('id', 'highlighter_content');
         var my_content = document.getElementById('highlighter_content');
         myHighlighter = new TextHighlighter(my_content,{onAfterHighlight: function(arr, element) {afterHighlight(arr, element);}});
+        
+        my_content.addEventListener("mouseup", newSelection);
+        my_content.addEventListener("touchend", newSelection);
+        
         loadStoredHighlights();
-        //TODO markup for loaded highlights
+    }
+    
+    function newSelection(){
+        //console.log("newSelection");
+        //TODO display menu
+        myHighlighter.doHighlight();
     }
     
     function afterHighlight(arr, element){
@@ -47,9 +56,8 @@ $(function() {
         
     }
 
-    function storeHighlights() {
-        
-        //replace escapted \" because php removes these
+    function storeHighlights() {     
+        //replace escapted \" because php removes those
         var serializedHighlights = myHighlighter.serializeHighlights().replace(/\\"/g,"'");
         
         //console.log(serializedHighlights);
@@ -62,12 +70,15 @@ $(function() {
             'highlight_data' : serializedHighlights
         };
 
-        console.log(data);
+        //console.log(data);
 
         jQuery.post(highlight_vars.ajax_url, data, function(response) {
-            console.log('Got this from the server: ' + response);
+            if(response <= 0){
+                console.warn("failed to save");
+                console.log(data);
+                console.log(response);
+            }
         });
-        //TODO ajax save highlights
     }
     
     function doMarkup(timestamp){

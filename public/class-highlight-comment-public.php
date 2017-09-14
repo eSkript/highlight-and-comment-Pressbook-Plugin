@@ -75,7 +75,7 @@ class Highlight_Comment_Public {
 
         //load saved highlights
         $all_highlights = get_user_meta(get_current_user_id(),'highlight-comment',true);
-        $chapter_highlights = Array();
+        $chapter_highlights = "";
         if(is_array($all_highlights) && strlen(get_the_ID()) != 0 && array_key_exists(get_current_blog_id(),$all_highlights) && array_key_exists(get_the_ID(),$all_highlights[get_current_blog_id()])){
             $chapter_highlights = $all_highlights[get_current_blog_id()][get_the_ID()];
         }
