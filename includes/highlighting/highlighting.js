@@ -1,27 +1,72 @@
 $(function() {
     //console.log(highlight_vars);
     var myHighlighter;
+    $(".entry-content").attr('id', 'highlighter_content');
+    var my_content = document.getElementById('highlighter_content');
     
     if(window.location.href.indexOf("chapter") != -1 && highlight_vars.logged_in){
         setupHighlighter();
+        
+        //add invidible marker div
+        $(".entry-content").append("<div id='highlight_marker'><img src='"+highlight_vars.media_url+"marker-icon.png"+"'></div>");
+        
+        $("#highlight_marker").click( function(e) {e.preventDefault(); myHighlighter.doHighlight(); $("#highlight_marker").hide(); return false; } );
+        
+        //remove marker
+        //$(document).click(function (event) {$("#highlight_marker").hide();});
+
+    }else{
+        console.warn("not logged in or coverpage, highlighter not running");
     }
     
 
     function setupHighlighter(){
-        $(".entry-content").attr('id', 'highlighter_content');
-        var my_content = document.getElementById('highlighter_content');
+        
         myHighlighter = new TextHighlighter(my_content,{onAfterHighlight: function(arr, element) {afterHighlight(arr, element);}});
         
-        my_content.addEventListener("mouseup", newSelection);
-        my_content.addEventListener("touchend", newSelection);
+        my_content.addEventListener("mouseup", newSelectionDesktop);
+        my_content.addEventListener("touchend", newSelectionMobil);
         
         loadStoredHighlights();
     }
     
-    function newSelection(){
+    function newSelectionDesktop(event){
         //console.log("newSelection");
-        //TODO display menu
+        
+        var selection = getSelectionRange();
+        //event.which = 1 for left button
+        if(selection.rangeCount > 0 && event.which==1){            
+            var range = selection.getRangeAt(0);
+
+            if(range.startOffset != range.endOffset || range.startContainer != range.endContainer){
+                var height = $("#highlight_marker").height();
+                var width = $("#highlight_marker").width();
+
+                var left  = (event.clientX-width/2) + "px";
+                var top  = (event.clientY-height/2)  + "px";
+
+                $("#highlight_marker").css({'top':top,'left':left});
+                $("#highlight_marker").show();
+                
+                event.stopPropagation();
+                return;
+            }
+        }
+        $("#highlight_marker").hide();
+    }
+    
+    function newSelectionMobil(){
         myHighlighter.doHighlight();
+    }
+    
+    function getSelectionRange() {
+        var range = null;
+        if (window.getSelection) {
+            range = window.getSelection();
+        } else if (document.selection && document.selection.type != "Control") {
+            range = document.selection.createRange();
+        }
+        return range;
     }
     
     function afterHighlight(arr, element){
@@ -84,11 +129,13 @@ $(function() {
     function doMarkup(timestamp){
         $("span[data-timestamp='"+timestamp+"']").hover(function() {
             $("span[data-timestamp='"+timestamp+"']").addClass("hover");
-            $("span[data-timestamp='"+timestamp+"'] a").removeClass("hidden");
+            $("span[data-timestamp='"+timestamp+"'] a.delete_highlight").removeClass("hidden");
         }, function() {
             $("span[data-timestamp='"+timestamp+"']").removeClass("hover");
-            $("span[data-timestamp='"+timestamp+"'] a").addClass("hidden");
+            $("span[data-timestamp='"+timestamp+"'] a.delete_highlight").addClass("hidden");
         });
+        
+        $("span[data-timestamp='"+timestamp+"'] a.delete_highlight").remove();
 
         $("span[data-timestamp='"+timestamp+"']").last().append("<a href='javascript:alert('test');' class='delete_highlight hidden' alt='Delete'><div><img src='"+highlight_vars.media_url+"minus.png"+"'></div></a>");
 
