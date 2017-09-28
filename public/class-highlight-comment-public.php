@@ -72,49 +72,118 @@ class Highlight_Comment_Public {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
+		//only load when user is logged in
+		if(!is_user_logged_in()){
+			return;
+		}
+		
+		//load saved highlights
+		$all_highlights = get_user_meta(get_current_user_id(),'highlight-comment',true);
+		$book_highlights = Array();
+		$settings = "";
+		if(is_array($all_highlights) && strlen(get_the_ID()) != 0 && array_key_exists(get_current_blog_id(),$all_highlights)){
+			$book_highlights = $all_highlights[get_current_blog_id()];
+			if(array_key_exists("settings",$all_highlights[get_current_blog_id()])){
+				$settings = $all_highlights[get_current_blog_id()]["settings"];
+			}
+		}
+		
+		//TODO better....
+		if (strpos($_SERVER['REQUEST_URI'], "chapter") !== false){
+			
+			$chapter_highlights = "";
+			if(array_key_exists(get_the_ID(),$all_highlights[get_current_blog_id()])){
+				$chapter_highlights = $all_highlights[get_current_blog_id()][get_the_ID()];
+			}
+			
+			$jquery_data = array(
+			"ajax_url" => admin_url( 'admin-ajax.php' ),
+			"ajax_nonce" => wp_create_nonce( "progNonce" ),
+			"book_id" => get_current_blog_id(),
+			"chapter_id" => get_the_ID(),
+			"media_url" => plugin_dir_url(__DIR__ ) . 'media/',
+			"highlight_data" => $chapter_highlights,
+			"settings" => $settings
+			);
 
-        //load saved highlights
-        $all_highlights = get_user_meta(get_current_user_id(),'highlight-comment',true);
-        $chapter_highlights = "";
-        if(is_array($all_highlights) && strlen(get_the_ID()) != 0 && array_key_exists(get_current_blog_id(),$all_highlights) && array_key_exists(get_the_ID(),$all_highlights[get_current_blog_id()])){
-            $chapter_highlights = $all_highlights[get_current_blog_id()][get_the_ID()];
-        }
+			wp_register_script("highlighting-js",plugin_dir_url( __FILE__ ). 'js/highlight-comment-public-chapter.js', array( 'jquery' ) );
+			wp_localize_script("highlighting-js", "highlight_vars", $jquery_data);
+			wp_enqueue_script("highlighting-js");
 
-        $jquery_data = array(
-	    "logged_in" => is_user_logged_in(),
-        "ajax_url" => admin_url( 'admin-ajax.php' ),
-        "ajax_nonce" => wp_create_nonce( "progNonce" ),
-		"book_id" => get_current_blog_id(),
-		"chapter_id" => get_the_ID(),
-        "media_url" => plugin_dir_url(__DIR__ ) . 'media/',
-        "highlight_data" => $chapter_highlights 
-	    );
+
+
+			wp_register_script("TextHighlighter-js",plugin_dir_url( __DIR__ ). 'includes/highlighting/TextHighlighter.min.js', array( 'jquery' ) );
+			wp_enqueue_script("TextHighlighter-js");
+		}else{
+			
+			
+			$jquery_data = array(
+			"ajax_url" => admin_url( 'admin-ajax.php' ),
+			"ajax_nonce" => wp_create_nonce( "progNonce" ),
+			"book_id" => get_current_blog_id(),
+			"chapter_id" => get_the_ID(),
+			"media_url" => plugin_dir_url(__DIR__ ) . 'media/',
+			"highlight_all" => $book_highlights,
+			"settings" => $settings,
+			"test" => get_post(23),
+			"debug" => get_user_meta(get_current_user_id(),'highlight-comment',true)
+			);
+
+			wp_register_script("highlighting-js",plugin_dir_url( __FILE__ ). 'js/highlight-comment-public-menu.js', array( 'jquery' ) );
+			wp_localize_script("highlighting-js", "highlight_vars", $jquery_data);
+			wp_enqueue_script("highlighting-js");
+
+			wp_register_script("TextHighlighter-js",plugin_dir_url( __DIR__ ). 'includes/highlighting/TextHighlighter.min.js', array( 'jquery' ) );
+			wp_enqueue_script("TextHighlighter-js");
+		}
+
         
-        wp_register_script("highlighting-js",plugin_dir_url( __DIR__ ). 'includes/highlighting/highlighting.js', array( 'jquery' ) );
-        wp_localize_script("highlighting-js", "highlight_vars", $jquery_data);
-        wp_enqueue_script("highlighting-js");
-        
-        
-        
-        wp_register_script("TextHighlighter-js",plugin_dir_url( __DIR__ ). 'includes/highlighting/TextHighlighter.min.js', array( 'jquery' ) );
-        wp_enqueue_script("TextHighlighter-js");
 
 	}
     
     //ajax functions -------------------------------------------------------
     public function save_highlights(){        
         if ( !isset($_POST['progNonce']) || !wp_verify_nonce( $_POST['progNonce'], 'progNonce' ) ){die ( 'you cant do this' );}
+		
+		if(!isset($_POST['highlight_data'])){die('missing arguments');}
+		
+		//get postID in php
+		$url     = wp_get_referer();
+		$post_id = url_to_postid($url); 
+		
         
         $all_highlights = get_user_meta(get_current_user_id(),'highlight-comment',true);
         
         if(!is_array($all_highlights)){
             $all_highlights = Array(Array());
         }
-       
-		$all_highlights[$_POST['book_id']][$_POST['chapter_id']] = $_POST['highlight_data'];
+		
+		//add or remove highlights from array
+        if(strpos($_POST['highlight_data'], "[]") === false){
+			$all_highlights[get_current_blog_id()][$post_id] = $_POST['highlight_data'];
+		}else{
+			unset($all_highlights[get_current_blog_id()][$post_id]);
+		}
 		
 		echo update_user_meta( get_current_user_id(), 'highlight-comment', $all_highlights);
 
         wp_die(); // this is required to terminate immediately and return a proper response
     }
+	
+	public function save_settings(){
+		if ( !isset($_POST['progNonce']) || !wp_verify_nonce( $_POST['progNonce'], 'progNonce' ) ){die ( 'you cant do this' );}
+		
+		//missing arguments
+		if ( !isset($_POST['active'])){die ( 'you cant do this' );}
+		
+		$all_highlights = get_user_meta(get_current_user_id(),'highlight-comment',true);
+		if(!is_array($all_highlights)){
+            $all_highlights = Array(Array());
+        }
+		
+		$all_highlights[get_current_blog_id()]['settings'] = $_POST['active'];
+		echo update_user_meta( get_current_user_id(), 'highlight-comment', $all_highlights);
+		
+		wp_die(); 
+	}
 }

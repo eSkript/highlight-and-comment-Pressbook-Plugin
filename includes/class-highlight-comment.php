@@ -176,6 +176,9 @@ class Highlight_Comment {
         //ajax handlers
         $this->loader->add_action( 'wp_ajax_nopriv_highlight_save_highlights', $plugin_public,'save_highlights' );
 		$this->loader->add_action( 'wp_ajax_highlight_save_highlights', $plugin_public,'save_highlights' );
+		
+		$this->loader->add_action( 'wp_ajax_nopriv_highlight_save_settings', $plugin_public,'save_settings' );
+		$this->loader->add_action( 'wp_ajax_highlight_save_settings', $plugin_public,'save_settings' );
 
 	}
 
