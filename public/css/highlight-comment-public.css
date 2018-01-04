@@ -46,3 +46,14 @@
     width: 100%;
     border-radius: 3px;
 }
+
+#highlight_summary h4{
+    color: black;
+    font-size: 1.5em;
+}
+
+#highlight_summary p{
+    margin-bottom: 10px;
+    margin-top: 10px;
+    padding-top: 10px;
+}

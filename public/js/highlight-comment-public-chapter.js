@@ -28,6 +28,22 @@ $(function () {
 				$("#highlight_marker").hide();
 				return false;
 			});
+            
+            
+            //scroll to highlight reference
+            if(getUrlParameter('highlight_ref') != undefined){
+                console.log("scroll to highlight");
+                var scroll_highlight = $("[data-timestamp='"+getUrlParameter('highlight_ref')+"']")[0];
+                
+                
+                window.location.hash = "test";
+                //var subchapter_id = 
+                
+                $('html, body').animate({
+                    scrollTop: $(scroll_highlight).offset().top
+                }, 500);
+            }
+            
 		});
 
 		function setupHighlighter() {
@@ -89,9 +105,13 @@ $(function () {
 
 		function afterHighlight(arr, element) {
 			//console.log(element);
-			var respecticeTimestamp = element[0].outerHTML.split("data-timestamp=")[1].split("\"")[1];
+			var respectiveTimestamp = element[0].outerHTML.split("data-timestamp=")[1].split("\"")[1];
+            
+            var subchapter_id = $(element).parent().prev('.in-list').attr('id');
+            
+            $(element).data('subchapter', subchapter_id);
 
-			doMarkup(respecticeTimestamp);
+			doMarkup(respectiveTimestamp);
 
 			storeHighlights();
 		}
@@ -136,7 +156,7 @@ $(function () {
 			//console.log(data);
 
 			jQuery.post(highlight_vars.ajax_url, data, function (response) {
-				console.log(response);
+				//console.log(response);
 				if (response <= 0) {
 					console.warn("failed to save");
 					console.log(data);
@@ -156,7 +176,7 @@ $(function () {
 
 			$("span[data-timestamp='" + timestamp + "'] a.delete_highlight").remove();
 
-			$("span[data-timestamp='" + timestamp + "']").last().append("<a href='javascript:alert('test');' class='delete_highlight hidden' alt='Delete'><div><img src='" + highlight_vars.media_url + "minus.png" + "'></div></a>");
+			$("span[data-timestamp='" + timestamp + "']").last().append("<a class='delete_highlight hidden' alt='Delete'><div><img src='" + highlight_vars.media_url + "minus.png" + "'></div></a>");
 
 			$("span[data-timestamp='" + timestamp + "']").last().find("a.delete_highlight").click(function (e) {
 				e.preventDefault();
@@ -169,4 +189,19 @@ $(function () {
 		Array.prototype.last = function () {
 			return this[this.length - 1];
 		}
+        
+        function getUrlParameter(sParam) {
+            var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : sParameterName[1];
+                }
+            }
+        };
 });

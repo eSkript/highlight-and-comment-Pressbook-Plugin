@@ -120,6 +120,7 @@ class Highlight_Comment_Public {
 			$jquery_data = array(
 			"ajax_url" => admin_url( 'admin-ajax.php' ),
 			"ajax_nonce" => wp_create_nonce( "progNonce" ),
+            "admin_url" => admin_url("admin-post.php"),
 			"book_id" => get_current_blog_id(),
 			"chapter_id" => get_the_ID(),
 			"media_url" => plugin_dir_url(__DIR__ ) . 'media/',
@@ -186,4 +187,30 @@ class Highlight_Comment_Public {
 		
 		wp_die(); 
 	}
+    
+    
+    public function load_all_highlights(){
+        if ( !isset($_POST['progNonce']) || !wp_verify_nonce( $_POST['progNonce'], 'progNonce' ) ){die ( 'you cant do this' );}
+        
+        $all_highlights = get_user_meta(get_current_user_id(),'highlight-comment',true);
+        
+        $data = $all_highlights[get_current_blog_id()];
+        unset($data["settings"]);
+        
+        $out = [];
+        
+        
+        foreach($data as $key => $value){
+            //echo json_encode(get_post($key)["post_title"]);
+            $out[$key] = Array();
+            $post = get_post($key);
+            $out[$key]['titel'] = $post->post_title;
+            $out[$key]['link'] = get_permalink($key);
+            $out[$key]['data'] = $value;
+        }
+        
+        echo json_encode($out);
+        
+        wp_die(); 
+    }
 }
